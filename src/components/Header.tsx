@@ -59,7 +59,7 @@ const Header = ({ extraClasses = "" }) => {
               alt="KVTV Logo"
               className="h-12 w-auto"
             />
-            <span className="text-xl font-bold hidden md:block dark:text-white">KVTV</span>
+            {/* <span className="text-xl font-bold hidden md:block dark:text-white">KVTV</span> */}
           </Link>
 
           {/* Desktop Navigation */}
