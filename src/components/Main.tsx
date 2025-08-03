@@ -65,7 +65,7 @@ const Main: React.FC<Props> = ({
                 }
                 className=" hover:brightness-125 scale-[0.99] hover:scale-[1] duration-300 py-2 px-1 rounded-xl"
               >
-                <img
+                {/* <img
                   className=" w-full 2xl:h-full xl:h-[300px] lg:h-[280px] object-cover md:h-[360px] sm:h-[300px] h-[160px]"
                   src={`${
                     movie.poster_path
@@ -73,7 +73,21 @@ const Main: React.FC<Props> = ({
                       : noPoster
                   }`}
                   alt={movie.title || movie.name}
-                />
+                /> */}
+
+<img
+  className="w-full 2xl:h-full xl:h-[300px] lg:h-[280px] object-cover md:h-[360px] sm:h-[300px] h-[160px] rounded-xl"
+  src={`${
+    movie.poster_path
+      ? `https://image.tmdb.org/t/p/w500${movie.poster_path}`
+      : noPoster
+  }`}
+  alt={movie.title || movie.name}
+/>
+
+
+
+
                 <div className="px-2 w-full">
                   <h4 className="font-semibold text-base py-2 text-ellipsis text-nowrap overflow-hidden">
                     {url.includes("tv") ? movie.name : movie.title}

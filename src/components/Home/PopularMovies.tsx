@@ -10,41 +10,59 @@ import { Link, useNavigate } from "react-router-dom";
 import { useFetch } from "@/hooks/UseFetch";
 import { Skeleton } from "../ui/skeleton";
 
+interface Movie {
+  id: number;
+  title: string;
+  poster_path: string;
+  vote_average: number;
+  vote_count: number;
+  release_date: string;
+  overview?: string;
+}
+
 interface PopularMoviesProps {
   category: string;
 }
 
 const PopularMovies: React.FC<PopularMoviesProps> = ({ category }) => {
   const navigate = useNavigate();
-  const { apiList, loading } = useFetch(`/movie/${category}`);
-  // console.log(apiList);
+  const { apiList, loading } = useFetch<Movie[]>(`/movie/${category}`);
+  
   return (
-    <>
-      {/* Popular Movie List */}
-      <div className="md:py-8 lg:px-20 md:px-10 sm:px-4 px-2">
-        <div className="flex items-center justify-between">
-          <h4 className=" font-bold sm:text-2xl text-lg capitalize">
-            {category} Movies
+    <div 
+      className="py-10 px-4 sm:px-8 lg:px-16 xl:px-20"
+      style={{
+        background: "radial-gradient(ellipse at top, #400000, #000000)",
+      }}
+    >
+      <div className="max-w-7xl mx-auto">
+        {/* Header */}
+        <div className="flex items-center justify-between mb-6">
+          <h4 className="font-bold text-2xl md:text-3xl text-white capitalize">
+            {category.replace(/-/g, ' ')} Movies
           </h4>
-          <Link to="/movies" className="sm:text-base text-xs">
-            View All
+          <Link 
+            to="/movies" 
+            className="text-sm md:text-base text-red-400 hover:text-red-300 transition-colors duration-300 font-medium"
+          >
+            View All →
           </Link>
         </div>
-        <Carousel className="">
+
+        {/* Carousel */}
+        <Carousel className="relative group">
           {loading ? (
-            <CarouselContent className="pt-4">
-              {apiList?.map((item) => (
+            <CarouselContent>
+              {[...Array(6)].map((_, index) => (
                 <CarouselItem
-                  key={item.id}
-                  className="basis-1/3 xl:basis-40 md:basis-1/6 h-[200px] sm:basis-1/4 hover:scale-105 sm:pl-2 pl-1 duration-300 ease-in-out"
+                  key={index}
+                  className="basis-1/2 sm:basis-1/3 md:basis-1/4 lg:basis-1/5 xl:basis-1/6"
                 >
-                  <div className="p-0">
-                    <Card
-                      onClick={() => navigate(`/movie-info/${item.id}`)}
-                      className="cursor-pointer p-0 rounded-none border-none"
-                    >
-                      <CardContent className="flex aspect-auto items-center justify-center p-0">
-                        <Skeleton className="w-full h-[200px]" />
+                  <div className="p-1">
+                    <Card className="bg-transparent shadow-none rounded-lg">
+                      <CardContent className="p-0">
+                        <Skeleton className="w-full h-[250px] md:h-[280px] rounded-lg bg-gray-800" />
+                        <Skeleton className="w-3/4 h-4 mt-2 bg-gray-800" />
                       </CardContent>
                     </Card>
                   </div>
@@ -53,42 +71,61 @@ const PopularMovies: React.FC<PopularMoviesProps> = ({ category }) => {
             </CarouselContent>
           ) : (
             <>
-              <CarouselContent className="pt-4">
+              <CarouselContent>
                 {apiList.map((item) => (
                   <CarouselItem
                     key={item.id}
-                    className="basis-1/3 xl:basis-40 md:basis-1/6 sm:basis-1/4 hover:scale-105 sm:pl-2 pl-1 duration-300 ease-in-out"
+                    className="basis-1/2 sm:basis-1/3 md:basis-1/4 lg:basis-1/5 xl:basis-1/6"
                   >
-                    <div className="p-0">
-                      <Card
+                    <div className="p-1">
+                      <Card 
                         onClick={() => navigate(`/movie-info/${item.id}`)}
-                        className="cursor-pointer p-0 rounded-none border-none"
+                        className="cursor-pointer bg-transparent shadow-none overflow-hidden rounded-lg transition-all duration-300 hover:scale-105"
                       >
-                        <CardContent className="flex aspect-auto items-center justify-center p-0">
-                          <span className="text-4xl font-semibold">
+                        <CardContent className="relative p-0">
+                          {/* Movie Poster with Hover Effect */}
+                          <div className="relative overflow-hidden rounded-lg">
                             <img
-                              src={
-                                "https://image.tmdb.org/t/p/original" +
-                                item.poster_path
-                              }
+                              src={`https://image.tmdb.org/t/p/w500${item.poster_path}`}
                               alt={item.title}
-                              className="w-full object-cover sm:h-[210px] h-[180px]"
+                              className="w-full h-[250px] md:h-[280px] object-cover transition-transform duration-500 hover:scale-110"
+                              loading="lazy"
                             />
-                          </span>
+                            {/* Hover Overlay */}
+                            <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent opacity-0 hover:opacity-100 transition-opacity duration-300 flex flex-col justify-end p-3">
+                              <h3 className="text-white font-bold text-sm md:text-base truncate">
+                                {item.title}
+                              </h3>
+                              <div className="flex items-center mt-1">
+                                <span className="text-yellow-400 text-xs md:text-sm font-medium">
+                                  ★ {item.vote_average.toFixed(1)}
+                                </span>
+                                <span className="text-gray-300 text-xs mx-2">|</span>
+                                <span className="text-gray-300 text-xs">
+                                  {item.release_date.split('-')[0]}
+                                </span>
+                              </div>
+                            </div>
+                          </div>
                         </CardContent>
                       </Card>
                     </div>
                   </CarouselItem>
                 ))}
               </CarouselContent>
-              <CarouselPrevious className="-left-5 top-1/2 md:flex hidden" />
-              <CarouselNext className="-right-5 top-1/2 md:flex hidden" />
+              
+              {/* Navigation Arrows */}
+              <CarouselPrevious 
+                className="absolute left-0 top-1/2 -translate-y-1/2 hidden md:flex h-10 w-10 rounded-full bg-black/50 hover:bg-black/70 text-white border-none shadow-lg hover:scale-110 transition-all duration-300" 
+              />
+              <CarouselNext 
+                className="absolute right-0 top-1/2 -translate-y-1/2 hidden md:flex h-10 w-10 rounded-full bg-black/50 hover:bg-black/70 text-white border-none shadow-lg hover:scale-110 transition-all duration-300" 
+              />
             </>
           )}
         </Carousel>
       </div>
-      {/* Popular Movie List */}
-    </>
+    </div>
   );
 };
 

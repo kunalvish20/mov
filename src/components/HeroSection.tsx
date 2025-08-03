@@ -48,7 +48,7 @@ const HeroSection: React.FC<Props> = ({ url }) => {
   };
   return (
     <>
-      <div className=" absolute dark:text-white z-10 w-full top-[18%] left-1/2 flex justify-center translate-x-[-50%] translate-y-[-50%]">
+      <div className=" absolute dark:text-white light:text-white z-10 w-full top-[18%] left-1/2 flex justify-center translate-x-[-50%] translate-y-[-50%]">
         <div className="flex flex-col gap-2 justify-center items-center">
           <h2 className="text-3xl font-bold">Blink Search</h2>
           <div className="searchBox">
@@ -149,7 +149,7 @@ const HeroSection: React.FC<Props> = ({ url }) => {
                 <div className="p-1">
                   <Card
                     onClick={() => navigate(`/movie-info/${item.id}`)}
-                    className="cursor-pointer rounded-none"
+                  className="cursor-pointer rounded-lg overflow-hidden shadow-lg"
                   >
                     <CardContent className="flex aspect-auto items-center justify-center p-0">
                       <span className="text-4xl font-semibold">

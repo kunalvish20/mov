@@ -18,7 +18,7 @@ const Sidebar = () => {
           <div className="flex h-14 items-center border-b px-4 lg:h-[60px] lg:px-6">
             <Link to="/" className="flex items-center gap-2 font-semibold">
               <Clapperboard className="h-6 w-6" />
-              <span className="">Sinema</span>
+              <span className="">KVTV</span>
             </Link>
           </div>
           <div className="flex-1">

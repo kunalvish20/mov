@@ -83,7 +83,7 @@
   width: 8px;
 }
 *::-webkit-scrollbar-thumb {
-  background-color: rgb(255, 52, 119);
+  background-color: rgb(253, 0, 0);
   border-radius: 8px;
   width: 5px;
 }

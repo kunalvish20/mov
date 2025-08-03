@@ -17,10 +17,10 @@ const Footer = () => {
                   fill="currentColor"
                 />
               </svg> */}
-              <h2 className="text-2xl font-black">Sinema</h2>
+              <h2 className="text-2xl font-black">KVTV</h2>
             </div>
             <p className="text-sm leading-none text-gray-800 mt-4 dark:text-white">
-              Copyright © 2021 Sinema
+              Copyright © 2025 KVTV
             </p>
             <p className="text-sm leading-none text-gray-800 mt-4 dark:text-white">
               All rights reserved
