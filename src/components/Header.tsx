@@ -6,7 +6,6 @@ import {
   Film,
   Home,
   Menu,
-  Search,
   Moon,
   Sun,
 } from "lucide-react";

@@ -1,41 +1,12 @@
 import { BsFillPlayFill, BsStarFill } from "react-icons/bs";
 import { FiCalendar, FiClock, FiGlobe, FiDollarSign } from "react-icons/fi";
 import Header from "@/components/Header";
-import { useDetails } from "@/hooks/useDetails"; // Ensure this path is correct
+import { useDetails } from "@/hooks/useDetails";
 import { useLocation, useNavigate, useParams } from "react-router-dom";
 import { useMemo, useState, useEffect } from "react";
-import { Skeleton } from "../components/ui/skeleton"; // Ensure this path is correct
+import { Skeleton } from "../components/ui/skeleton";
 import { motion } from "framer-motion";
-
-interface Season {
-  season_number: number;
-  name: string;
-  episode_count?: number;
-  poster_path?: string;
-}
-
-interface Genre {
-  id: number;
-  name: string;
-}
-
-// MediaDetails interface should correctly reflect what's expected from the API for both movies and TV
-interface MediaDetails {
-  id: number;
-  name?: string; // For TV shows
-  original_title?: string; // For movies
-  overview?: string;
-  backdrop_path?: string;
-  poster_path?: string;
-  genres?: Genre[];
-  runtime?: number; // For movies
-  revenue?: number; // For movies
-  release_date?: string; // For movies
-  first_air_date?: string; // For TV shows (crucial for your fix)
-  original_language?: string;
-  seasons?: Season[]; // For TV shows
-  vote_average?: number;
-}
+import { MovieDetails, TVDetails } from "@/types/types";
 
 const fadeIn = {
   hidden: { opacity: 0 },
@@ -52,35 +23,51 @@ const Details = () => {
   const navigate = useNavigate();
   const { pathname } = useLocation();
 
-  // No need for useMemo here, direct assignment is fine and simpler
   const type = pathname.includes("/tv") ? "tv" : "movie";
 
-  // Use correct generic for useDetails hook and rename apiList to details
-  const { details, loading } = useDetails<MediaDetails>(`/${type}/${movieId}`);
+  // Use correct generic for useDetails hook
+  const { details, loading } = useDetails<MovieDetails | TVDetails>(`/${type}/${movieId}`);
 
   const [selectedSeason, setSelectedSeason] = useState<number | null>(null);
   const [episodeCount, setEpisodeCount] = useState<number>(0);
   const [selectedEpisode, setSelectedEpisode] = useState<number | null>(null);
   const [isBackdropLoaded, setIsBackdropLoaded] = useState(false);
 
+  // Type guard to check if details is TVDetails
+  const isTVDetails = (details: MovieDetails | TVDetails): details is TVDetails => {
+    // Check if the details object has properties specific to TV shows
+    return 'name' in details && 'first_air_date' in details;
+  };
+
   // Safe runtime formatting
   const runtime = useMemo(() => {
-    if (details?.runtime) {
+    if (!details) return "N/A";
+    
+    if (isTVDetails(details) && details.episode_run_time && details.episode_run_time.length > 0) {
+      const epRuntime = details.episode_run_time[0];
+      const hours = Math.floor(epRuntime / 60);
+      const minutes = epRuntime % 60;
+      return `${hours}h ${minutes}m`;
+    }
+    
+    if (!isTVDetails(details) && details.runtime) {
       const hours = Math.floor(details.runtime / 60);
       const minutes = details.runtime % 60;
       return `${hours}h ${minutes}m`;
     }
+    
     return "N/A";
-  }, [details]);
+  }, [details, type]);
 
   // Safe revenue formatting
   const revenue = useMemo(() => {
-    if (details?.revenue !== undefined && details.revenue !== null) {
+    if (!details || isTVDetails(details)) return "N/A";
+    
+    if (details.revenue !== undefined && details.revenue !== null) {
       // Check if revenue is 0 or less, as it might appear for some items.
-      // Or if it's very small, formatting to 'B' might look odd.
       if (details.revenue <= 0) return "N/A";
 
-      // Convert to billions for formatting. Use a higher precision temporarily if needed.
+      // Convert to billions for formatting.
       const revenueInBillions = details.revenue / 1_000_000_000;
 
       return (
@@ -94,7 +81,6 @@ const Details = () => {
     }
     return "N/A";
   }, [details]);
-
 
   // Language mapping safely
   const language = useMemo(() => {
@@ -110,23 +96,23 @@ const Details = () => {
       hi: "Hindi",
       // Add more language mappings as needed
     };
-    return langMap[details.original_language] || details.original_language.toUpperCase();
+    return langMap[details.original_language] || details.original_language?.toUpperCase() || "N/A";
   }, [details]);
 
   // Update episode count when season changes
   useEffect(() => {
-    if (selectedSeason !== null && details?.seasons) {
+    if (selectedSeason !== null && details && isTVDetails(details) && details.seasons) {
       const season = details.seasons.find(
         (s) => s.season_number === selectedSeason
       );
       setEpisodeCount(season?.episode_count ?? 0);
       setSelectedEpisode(null); // Reset selected episode when season changes
     }
-  }, [selectedSeason, details]);
+  }, [selectedSeason, details, type]);
 
   // Auto select first valid season if none selected (TV shows)
   useEffect(() => {
-    if (type === "tv" && details?.seasons?.length && selectedSeason === null) {
+    if (type === "tv" && details && isTVDetails(details) && details.seasons?.length && selectedSeason === null) {
       // Find the first season that is not "Specials" (season_number 0 typically)
       // and has episodes
       const firstValidSeason = details.seasons.find(
@@ -198,7 +184,7 @@ const Details = () => {
         {details.backdrop_path ? (
           <img
             src={`https://image.tmdb.org/t/p/original${details.backdrop_path}`}
-            alt={type === "tv" ? details.name || "" : details.original_title || ""}
+            alt={details ? (isTVDetails(details) ? details.name || "" : details.original_title || "") : ""}
             className="w-full h-[60vh] md:h-[70vh] lg:h-[80vh] object-cover object-center"
             loading="eager"
             onLoad={() => setIsBackdropLoaded(true)}
@@ -228,7 +214,7 @@ const Details = () => {
                 {details.poster_path ? (
                   <img
                     src={`https://image.tmdb.org/t/p/w500${details.poster_path}`}
-                    alt={type === "tv" ? details.name || "" : details.original_title || ""}
+                    alt={details ? (isTVDetails(details) ? details.name || "" : details.original_title || "") : ""}
                     className="w-full h-auto rounded-xl shadow-2xl object-cover border-2 border-white/10 hover:border-white/20 transition-all duration-300"
                   />
                 ) : (
@@ -248,7 +234,7 @@ const Details = () => {
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ delay: 0.2 }}
                 >
-                  {type === "tv" ? details.name || "" : details.original_title || ""}
+                  {details ? (isTVDetails(details) ? details.name || "" : details.original_title || "") : ""}
                 </motion.h1>
 
                 {/* Rating */}
@@ -305,7 +291,7 @@ const Details = () => {
                     <FiCalendar className="mr-2 text-white/70" />
                     <span className="font-medium">Release Date: </span>
                     <span className="ml-1">
-                      {type === "tv" ? details.first_air_date || "N/A" : details.release_date || "N/A"}
+                      {details ? (isTVDetails(details) ? details.first_air_date || "N/A" : details.release_date || "N/A") : "N/A"}
                     </span>
                   </div>
                   <div className="flex items-center justify-center md:justify-start">
@@ -318,7 +304,7 @@ const Details = () => {
                     <span className="font-medium">Language: </span>
                     <span className="ml-1">{language}</span>
                   </div>
-                  {details.revenue !== undefined && details.revenue !== null && details.revenue > 0 && (
+                  {!isTVDetails(details) && details.revenue !== undefined && details.revenue !== null && details.revenue > 0 && (
                     <div className="flex items-center justify-center md:justify-start">
                       <FiDollarSign className="mr-2 text-white/70" />
                       <span className="font-medium">Revenue: </span>
@@ -330,7 +316,7 @@ const Details = () => {
             </div>
 
             {/* Right Column: Seasons/Episodes (TV only) */}
-            {type === "tv" && details.seasons && (
+            {type === "tv" && isTVDetails(details) && details.seasons && (
               <motion.div
                 className="md:col-span-4 mt-8 md:mt-0"
                 initial={{ opacity: 0, y: 20 }}
@@ -413,14 +399,11 @@ const Details = () => {
           >
             <motion.button
               onClick={() => {
-                const title = type === "tv" ? details.name : details.original_title;
+                const title = details ? (isTVDetails(details) ? details.name : details.original_title) : "";
                 if (title) {
-                  // Ensure correct URL for searching YouTube.
-                  // The original URL 'https://www.youtube.com/results?search_query=${encodeURIComponent(title)}+trailer'
-                  // seems incorrect for direct Youtube.
-                  // A more typical approach would be:
+                  // Corrected Youtube URL for better accuracy
                   window.open(
-                    `https://www.youtube.com/results?search_query=${encodeURIComponent(title)}+trailer`,
+                    `https://www.youtube.com/results?search_query=${encodeURIComponent(title + " trailer")}`,
                     "_blank"
                   );
                 }

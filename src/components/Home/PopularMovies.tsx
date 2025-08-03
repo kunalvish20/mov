@@ -95,14 +95,12 @@ const PopularMovies: React.FC<PopularMoviesProps> = ({ category }) => {
                               </h3>
                               <div className="flex items-center mt-1">
                                 <span className="text-yellow-400 text-xs md:text-sm font-medium">
-                                  ★ {item.vote_average.toFixed(1)}
+                                  ★  {item.vote_average?.toFixed(1) || "N/A"}
                                 </span>
                                 <span className="text-gray-300 text-xs mx-2">|</span>
                                 {/* ✅ FIX 3: Safe release date handling */}
                                 <span className="text-gray-300 text-xs">
-                                  {typeof item.release_date === "string"
-                                    ? item.release_date.split("-")[0]
-                                    : "N/A"}
+                                  
                                 </span>
                               </div>
                             </div>
