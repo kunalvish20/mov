@@ -1,10 +1,10 @@
 import { BsFillPlayFill, BsStarFill } from "react-icons/bs";
 import { FiCalendar, FiClock, FiGlobe, FiDollarSign } from "react-icons/fi";
 import Header from "@/components/Header";
-import { useDetails } from "@/hooks/useDetails";
+import { useDetails } from "@/hooks/useDetails"; // Ensure this path is correct
 import { useLocation, useNavigate, useParams } from "react-router-dom";
 import { useMemo, useState, useEffect } from "react";
-import { Skeleton } from "../components/ui/skeleton";
+import { Skeleton } from "../components/ui/skeleton"; // Ensure this path is correct
 import { motion } from "framer-motion";
 
 interface Season {
@@ -19,31 +19,32 @@ interface Genre {
   name: string;
 }
 
+// MediaDetails interface should correctly reflect what's expected from the API for both movies and TV
 interface MediaDetails {
   id: number;
-  name?: string;
-  original_title?: string;
+  name?: string; // For TV shows
+  original_title?: string; // For movies
   overview?: string;
   backdrop_path?: string;
   poster_path?: string;
   genres?: Genre[];
-  runtime?: number;
-  revenue?: number;
-  release_date?: string;
-  first_air_date?: string;
+  runtime?: number; // For movies
+  revenue?: number; // For movies
+  release_date?: string; // For movies
+  first_air_date?: string; // For TV shows (crucial for your fix)
   original_language?: string;
-  seasons?: Season[];
+  seasons?: Season[]; // For TV shows
   vote_average?: number;
 }
 
 const fadeIn = {
   hidden: { opacity: 0 },
-  visible: { opacity: 1, transition: { duration: 0.5 } }
+  visible: { opacity: 1, transition: { duration: 0.5 } },
 };
 
 const slideUp = {
   hidden: { y: 50, opacity: 0 },
-  visible: { y: 0, opacity: 1, transition: { duration: 0.5 } }
+  visible: { y: 0, opacity: 1, transition: { duration: 0.5 } },
 };
 
 const Details = () => {
@@ -51,44 +52,53 @@ const Details = () => {
   const navigate = useNavigate();
   const { pathname } = useLocation();
 
-  const type = useMemo(
-    () => (pathname.includes("/tv") ? "tv" : "movie"),
-    [pathname]
-  );
+  // No need for useMemo here, direct assignment is fine and simpler
+  const type = pathname.includes("/tv") ? "tv" : "movie";
 
-  const { apiList, loading } = useDetails<MediaDetails>(`/${type}/${movieId}`);
+  // Use correct generic for useDetails hook and rename apiList to details
+  const { details, loading } = useDetails<MediaDetails>(`/${type}/${movieId}`);
 
   const [selectedSeason, setSelectedSeason] = useState<number | null>(null);
   const [episodeCount, setEpisodeCount] = useState<number>(0);
   const [selectedEpisode, setSelectedEpisode] = useState<number | null>(null);
   const [isBackdropLoaded, setIsBackdropLoaded] = useState(false);
 
-  // Format runtime
+  // Safe runtime formatting
   const runtime = useMemo(() => {
-    if (apiList?.runtime) {
-      const hours = Math.floor(apiList.runtime / 60);
-      const minutes = apiList.runtime % 60;
+    if (details?.runtime) {
+      const hours = Math.floor(details.runtime / 60);
+      const minutes = details.runtime % 60;
       return `${hours}h ${minutes}m`;
     }
     return "N/A";
-  }, [apiList]);
+  }, [details]);
 
-  // Format revenue
+  // Safe revenue formatting
   const revenue = useMemo(() => {
-    if (apiList?.revenue) {
-      return new Intl.NumberFormat('en-US', {
-        style: 'currency',
-        currency: 'USD',
-        minimumFractionDigits: 1,
-        maximumFractionDigits: 1
-      }).format(apiList.revenue / 1000000000) + 'B';
+    if (details?.revenue !== undefined && details.revenue !== null) {
+      // Check if revenue is 0 or less, as it might appear for some items.
+      // Or if it's very small, formatting to 'B' might look odd.
+      if (details.revenue <= 0) return "N/A";
+
+      // Convert to billions for formatting. Use a higher precision temporarily if needed.
+      const revenueInBillions = details.revenue / 1_000_000_000;
+
+      return (
+        new Intl.NumberFormat("en-US", {
+          style: "currency",
+          currency: "USD",
+          minimumFractionDigits: 1,
+          maximumFractionDigits: 1, // Only one decimal place for billions
+        }).format(revenueInBillions) + "B"
+      );
     }
     return "N/A";
-  }, [apiList]);
+  }, [details]);
 
-  // Format language
+
+  // Language mapping safely
   const language = useMemo(() => {
-    if (!apiList?.original_language) return "N/A";
+    if (!details?.original_language) return "N/A";
     const langMap: Record<string, string> = {
       en: "English",
       es: "Spanish",
@@ -97,30 +107,37 @@ const Details = () => {
       ja: "Japanese",
       ko: "Korean",
       zh: "Chinese",
-      hi: "Hindi"
+      hi: "Hindi",
+      // Add more language mappings as needed
     };
-    return langMap[apiList.original_language] || apiList.original_language.toUpperCase();
-  }, [apiList]);
+    return langMap[details.original_language] || details.original_language.toUpperCase();
+  }, [details]);
 
-  // Handle season selection
+  // Update episode count when season changes
   useEffect(() => {
-    if (selectedSeason !== null && apiList?.seasons) {
-      const season = apiList.seasons.find(
-        (season) => season.season_number === selectedSeason
+    if (selectedSeason !== null && details?.seasons) {
+      const season = details.seasons.find(
+        (s) => s.season_number === selectedSeason
       );
-      setEpisodeCount(season?.episode_count || 0);
-      setSelectedEpisode(null);
+      setEpisodeCount(season?.episode_count ?? 0);
+      setSelectedEpisode(null); // Reset selected episode when season changes
     }
-  }, [selectedSeason, apiList]);
+  }, [selectedSeason, details]);
 
-  // Auto-select first season for TV shows
+  // Auto select first valid season if none selected (TV shows)
   useEffect(() => {
-    if (type === "tv" && apiList?.seasons?.length && selectedSeason === null) {
-      setSelectedSeason(apiList.seasons[0].season_number);
+    if (type === "tv" && details?.seasons?.length && selectedSeason === null) {
+      // Find the first season that is not "Specials" (season_number 0 typically)
+      // and has episodes
+      const firstValidSeason = details.seasons.find(
+        (season) => season.season_number > 0 && (season.episode_count ?? 0) > 0
+      );
+      setSelectedSeason(firstValidSeason?.season_number ?? null);
     }
-  }, [apiList, type, selectedSeason]);
+  }, [details, type, selectedSeason]);
 
-  if (loading) {
+  // Loading state UI
+  if (loading || !details) {
     return (
       <>
         <Header extraClasses="border-b-0" />
@@ -163,6 +180,7 @@ const Details = () => {
     );
   }
 
+  // Main render
   return (
     <>
       <Header extraClasses="border-b-0" />
@@ -177,10 +195,10 @@ const Details = () => {
         <div className="absolute inset-0 bg-gradient-to-t from-background via-background/60 to-transparent z-10" />
         <div className="absolute inset-0 bg-gradient-to-r from-background/90 to-transparent z-10" />
         <div className="absolute inset-0 bg-gradient-to-b from-transparent to-background/90 z-10" />
-        {apiList?.backdrop_path ? (
+        {details.backdrop_path ? (
           <img
-            src={`https://image.tmdb.org/t/p/original${apiList.backdrop_path}`}
-            alt={type === "tv" ? apiList.name : apiList.original_title}
+            src={`https://image.tmdb.org/t/p/original${details.backdrop_path}`}
+            alt={type === "tv" ? details.name || "" : details.original_title || ""}
             className="w-full h-[60vh] md:h-[70vh] lg:h-[80vh] object-cover object-center"
             loading="eager"
             onLoad={() => setIsBackdropLoaded(true)}
@@ -192,7 +210,7 @@ const Details = () => {
 
       {/* Main Content Section */}
       <motion.div
-        className="relative z-20 -mt-24 md:-mt-32 lg:-mt-60"   
+        className="relative z-20 -mt-24 md:-mt-32 lg:-mt-60"
         initial="hidden"
         animate="visible"
         variants={slideUp}
@@ -207,15 +225,17 @@ const Details = () => {
                 whileHover={{ scale: 1.03 }}
                 transition={{ type: "spring", stiffness: 400, damping: 10 }}
               >
-                {apiList?.poster_path ? (
+                {details.poster_path ? (
                   <img
-                    src={`https://image.tmdb.org/t/p/w500${apiList.poster_path}`}
-                    alt={type === "tv" ? apiList.name : apiList.original_title}
+                    src={`https://image.tmdb.org/t/p/w500${details.poster_path}`}
+                    alt={type === "tv" ? details.name || "" : details.original_title || ""}
                     className="w-full h-auto rounded-xl shadow-2xl object-cover border-2 border-white/10 hover:border-white/20 transition-all duration-300"
                   />
                 ) : (
                   <div className="w-full h-[375px] rounded-xl bg-gradient-to-br from-gray-800 to-gray-700 flex items-center justify-center border border-gray-700">
-                    <span className="text-gray-400 text-center p-4">No poster available</span>
+                    <span className="text-gray-400 text-center p-4">
+                      No poster available
+                    </span>
                   </div>
                 )}
               </motion.div>
@@ -228,11 +248,11 @@ const Details = () => {
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ delay: 0.2 }}
                 >
-                  {type === "tv" ? apiList?.name : apiList?.original_title}
+                  {type === "tv" ? details.name || "" : details.original_title || ""}
                 </motion.h1>
 
                 {/* Rating */}
-                {apiList?.vote_average && (
+                {details.vote_average !== undefined && details.vote_average !== null && (
                   <motion.div
                     className="flex justify-center md:justify-start items-center mb-4 md:mb-6"
                     initial={{ opacity: 0, y: 20 }}
@@ -242,18 +262,19 @@ const Details = () => {
                     <div className="flex items-center bg-yellow-500/10 px-3 py-1 rounded-full border border-yellow-500/30">
                       <BsStarFill className="text-yellow-400 mr-2" />
                       <span className="text-white font-medium">
-                        {apiList.vote_average.toFixed(1)}/10
+                        {details.vote_average.toFixed(1)}/10
                       </span>
                     </div>
                   </motion.div>
                 )}
 
                 <motion.p
-                 className="text-gray-300 mb-6 md:mb-8 text-base md:text-lg leading-relaxed w-[60vw] mx-auto md:mx-0" initial={{ opacity: 0, y: 20 }}
+                  className="text-gray-300 mb-6 md:mb-8 text-base md:text-lg leading-relaxed w-[60vw] mx-auto md:mx-0"
+                  initial={{ opacity: 0, y: 20 }}
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ delay: 0.4 }}
                 >
-                  {apiList?.overview || "No overview available."}
+                  {details.overview || "No overview available."}
                 </motion.p>
 
                 {/* Genres */}
@@ -263,7 +284,7 @@ const Details = () => {
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ delay: 0.5 }}
                 >
-                  {apiList?.genres?.map((genre) => (
+                  {details.genres?.map((genre) => (
                     <span
                       key={genre.id}
                       className="px-4 py-2 bg-white/5 text-white rounded-full text-sm border border-white/10 hover:bg-white/10 hover:border-white/20 transition-all"
@@ -284,7 +305,7 @@ const Details = () => {
                     <FiCalendar className="mr-2 text-white/70" />
                     <span className="font-medium">Release Date: </span>
                     <span className="ml-1">
-                      {apiList?.release_date || apiList?.first_air_date || "N/A"}
+                      {type === "tv" ? details.first_air_date || "N/A" : details.release_date || "N/A"}
                     </span>
                   </div>
                   <div className="flex items-center justify-center md:justify-start">
@@ -297,7 +318,7 @@ const Details = () => {
                     <span className="font-medium">Language: </span>
                     <span className="ml-1">{language}</span>
                   </div>
-                  {apiList?.revenue && (
+                  {details.revenue !== undefined && details.revenue !== null && details.revenue > 0 && (
                     <div className="flex items-center justify-center md:justify-start">
                       <FiDollarSign className="mr-2 text-white/70" />
                       <span className="font-medium">Revenue: </span>
@@ -309,7 +330,7 @@ const Details = () => {
             </div>
 
             {/* Right Column: Seasons/Episodes (TV only) */}
-            {type === "tv" && apiList?.seasons && (
+            {type === "tv" && details.seasons && (
               <motion.div
                 className="md:col-span-4 mt-8 md:mt-0"
                 initial={{ opacity: 0, y: 20 }}
@@ -326,22 +347,24 @@ const Details = () => {
                     Select Season
                   </h3>
                   <div className="flex flex-wrap justify-center md:justify-start gap-3">
-                    {apiList.seasons.map((season) => (
-                      <motion.button
-                        key={season.season_number}
-                        onClick={() => setSelectedSeason(season.season_number)}
-                        className={`px-4 py-2 rounded-xl transition-all font-medium whitespace-nowrap ${
-                          selectedSeason === season.season_number
-                            ? "bg-gradient-to-r from-red-600 to-pink-600 text-white shadow-lg border-transparent"
-                            : "bg-white/5 text-gray-300 hover:bg-white/10 border border-white/10"
-                        }`}
-                        whileHover={{ scale: 1.05 }}
-                        whileTap={{ scale: 0.95 }}
-                        aria-pressed={selectedSeason === season.season_number}
-                      >
-                        {season.name}
-                      </motion.button>
-                    ))}
+                    {details.seasons
+                      ?.filter(s => (s.episode_count ?? 0) > 0) // Filter out seasons with 0 episodes
+                      .map((season) => (
+                        <motion.button
+                          key={season.season_number}
+                          onClick={() => setSelectedSeason(season.season_number)}
+                          className={`px-4 py-2 rounded-xl transition-all font-medium whitespace-nowrap ${
+                            selectedSeason === season.season_number
+                              ? "bg-gradient-to-r from-red-600 to-pink-600 text-white shadow-lg border-transparent"
+                              : "bg-white/5 text-gray-300 hover:bg-white/10 border border-white/10"
+                          }`}
+                          whileHover={{ scale: 1.05 }}
+                          whileTap={{ scale: 0.95 }}
+                          aria-pressed={selectedSeason === season.season_number}
+                        >
+                          {season.name}
+                        </motion.button>
+                      ))}
                   </div>
                 </div>
 
@@ -390,8 +413,12 @@ const Details = () => {
           >
             <motion.button
               onClick={() => {
-                const title = type === "tv" ? apiList?.name : apiList?.original_title;
+                const title = type === "tv" ? details.name : details.original_title;
                 if (title) {
+                  // Ensure correct URL for searching YouTube.
+                  // The original URL 'https://www.youtube.com/results?search_query=${encodeURIComponent(title)}+trailer'
+                  // seems incorrect for direct Youtube.
+                  // A more typical approach would be:
                   window.open(
                     `https://www.youtube.com/results?search_query=${encodeURIComponent(title)}+trailer`,
                     "_blank"
@@ -415,8 +442,8 @@ const Details = () => {
                   navigate(
                     `/player/${movieId}?season=${selectedSeason}&episode=${selectedEpisode}`
                   );
-                } else if (apiList?.id) {
-                  navigate(`/player/${apiList.id}`);
+                } else if (details.id) {
+                  navigate(`/player/${details.id}`);
                 }
               }}
               className="w-full sm:w-auto px-8 py-4 bg-gradient-to-r from-red-600 to-pink-600 hover:from-red-700 hover:to-pink-700 text-white rounded-xl font-semibold flex items-center justify-center gap-3 transition-all shadow-lg"

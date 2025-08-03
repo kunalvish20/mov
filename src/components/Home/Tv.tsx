@@ -10,26 +10,21 @@ import { Link, useNavigate } from "react-router-dom";
 import { useFetch } from "@/hooks/UseFetch";
 import { Skeleton } from "../ui/skeleton";
 
+// Updated TV show interface
 interface TVShow {
   id: number;
   name: string;
-  poster_path: string;
-  vote_average: number;
-  first_air_date: string;
+  poster_path: string | null;
+  vote_average?: number;
   overview?: string;
 }
 
 const Tv = () => {
   const navigate = useNavigate();
-  const { apiList, loading } = useFetch<TVShow[]>("/tv/popular");
+  const { apiList, loading } = useFetch("/tv/popular");
 
   return (
-    <section 
-      className="py-10 px-4 sm:px-8 lg:px-16 xl:px-20"
-      style={{
-        background: "radial-gradient(ellipse at top, #400000, #000000)",
-      }}
-    >
+    <section className="py-10 px-4 sm:px-8 lg:px-16 xl:px-20 bg-gradient-to-b from-[#400000] to-black">
       <div className="max-w-7xl mx-auto">
         {/* Header */}
         <div className="flex items-center justify-between mb-6">
@@ -78,28 +73,28 @@ const Tv = () => {
                         className="cursor-pointer bg-transparent shadow-none overflow-hidden rounded-lg transition-all duration-300 hover:scale-105"
                       >
                         <CardContent className="relative p-0">
-                          {/* TV Show Poster with Hover Effect */}
                           <div className="relative overflow-hidden rounded-lg">
                             <img
-                              src={`https://image.tmdb.org/t/p/w500${show.poster_path}`}
+                              src={
+                                show.poster_path
+                                  ? `https://image.tmdb.org/t/p/w500${show.poster_path}`
+                                  : "/fallback-image.jpg"
+                              }
                               alt={show.name}
                               className="w-full h-[250px] md:h-[280px] object-cover transition-transform duration-500 hover:scale-110"
                               loading="lazy"
                             />
-                            {/* Hover Overlay */}
                             <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent opacity-0 hover:opacity-100 transition-opacity duration-300 flex flex-col justify-end p-3">
                               <h3 className="text-white font-bold text-sm md:text-base truncate">
                                 {show.name}
                               </h3>
-                              <div className="flex items-center mt-1">
-                                <span className="text-yellow-400 text-xs md:text-sm font-medium">
-                                  ★ {show.vote_average.toFixed(1)}
-                                </span>
-                                <span className="text-gray-300 text-xs mx-2">|</span>
-                                <span className="text-gray-300 text-xs">
-                                  {show.first_air_date?.split('-')[0]}
-                                </span>
-                              </div>
+                              {show.vote_average !== undefined && (
+                                <div className="flex items-center mt-1">
+                                  <span className="text-yellow-400 text-xs md:text-sm font-medium">
+                                    ★ {show.vote_average.toFixed(1)}
+                                  </span>
+                                </div>
+                              )}
                             </div>
                           </div>
                         </CardContent>
@@ -108,14 +103,9 @@ const Tv = () => {
                   </CarouselItem>
                 ))}
               </CarouselContent>
-              
-              {/* Navigation Arrows */}
-              <CarouselPrevious 
-                className="absolute left-0 top-1/2 -translate-y-1/2 hidden md:flex h-10 w-10 rounded-full bg-black/50 hover:bg-black/70 text-white border-none shadow-lg hover:scale-110 transition-all duration-300" 
-              />
-              <CarouselNext 
-                className="absolute right-0 top-1/2 -translate-y-1/2 hidden md:flex h-10 w-10 rounded-full bg-black/50 hover:bg-black/70 text-white border-none shadow-lg hover:scale-110 transition-all duration-300" 
-              />
+
+              <CarouselPrevious className="absolute left-0 top-1/2 -translate-y-1/2 hidden md:flex h-10 w-10 rounded-full bg-black/50 hover:bg-black/70 text-white border-none shadow-lg hover:scale-110 transition-all duration-300" />
+              <CarouselNext className="absolute right-0 top-1/2 -translate-y-1/2 hidden md:flex h-10 w-10 rounded-full bg-black/50 hover:bg-black/70 text-white border-none shadow-lg hover:scale-110 transition-all duration-300" />
             </>
           )}
         </Carousel>
