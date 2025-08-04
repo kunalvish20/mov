@@ -10,7 +10,6 @@ import {
   Sun,
 } from "lucide-react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
-import logo from "../../favicon-32x32.png";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -50,12 +49,12 @@ const Header = ({ extraClasses = "" }) => {
 
   return (
     <header className={`sticky top-0 z-50 bg-white dark:bg-gray-900 shadow-sm ${extraClasses}`}>
-      <div className="container mx-auto px-4 py-3">
+      <div className="container mx-auto">
         <div className="flex justify-between items-center">
           {/* Logo */}
-          <Link to="/" className="flex items-center gap-2">
+          <Link to="https://photos.app.goo.gl/FdZ4toBpCxbQKbw58" className="flex items-center gap-2">
             <img
-              src="../src/assets/logo.webp"
+              src="/logo.webp"
               alt="KVTV Logo"
               className="h-12 w-auto"
             />
@@ -202,7 +201,7 @@ const Header = ({ extraClasses = "" }) => {
                       className="flex items-center gap-2 text-lg font-semibold mb-6"
                     >
                       <img
-                        src={logo}
+                        src="/logo.webp"
                         alt="KVTV Logo"
                         className="h-8 w-8"
                       />
