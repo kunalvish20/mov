@@ -2,7 +2,8 @@
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
-    <!-- <link rel="icon" type="image/svg+xml" href="/vite.svg" /> -->
+
+    <!-- Favicon -->
     <link
       rel="apple-touch-icon"
       sizes="180x180"
@@ -21,9 +22,67 @@
       href="./favicon-16x16.png"
     />
     <link rel="manifest" href="./manifest.json" />
+
+    <!-- Viewport -->
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+    <!-- Title -->
     <title>KvTv - All your Favorite Entertainment at your Hands</title>
+
+    <!-- Meta Description -->
+    <meta
+      name="description"
+      content="Stream and explore top-rated, trending, and upcoming movies and TV shows on KvTv. Your ultimate entertainment hub."
+    />
+
+    <!-- Keywords -->
+    <meta
+      name="keywords"
+      content="movies, TV shows, streaming, popular movies, watch online, KvTv, latest movies, entertainment"
+    />
+
+    <!-- Author -->
+    <meta name="author" content="KvTv Team" />
+
+    <!-- Open Graph (Facebook & others) -->
+    <meta property="og:title" content="KvTv - Stream Movies and Shows" />
+    <meta
+      property="og:description"
+      content="Watch trending and top-rated movies and TV series for free on KvTv."
+    />
+    <meta property="og:type" content="website" />
+    <meta property="og:url" content="https://www.kvtv.example.com" />
+    <meta property="og:image" content="https://www.kvtv.example.com/preview.jpg" />
+
+    <!-- Twitter Card -->
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content="KvTv - Watch Movies & TV Shows" />
+    <meta
+      name="twitter:description"
+      content="Browse a vast collection of trending movies and series online. Enjoy seamless streaming at KvTv."
+    />
+    <meta name="twitter:image" content="https://www.kvtv.example.com/preview.jpg" />
+
+    <!-- Canonical URL -->
+    <link rel="canonical" href="https://www.kvtv.example.com" />
+
+    <!-- Structured Data (JSON-LD) -->
+    <script type="application/ld+json">
+      {
+        "@context": "https://schema.org",
+        "@type": "VideoStreamingService",
+        "name": "KvTv",
+        "url": "https://www.kvtv.example.com",
+        "sameAs": [
+          "https://twitter.com/kvtv",
+          "https://www.facebook.com/kvtv"
+        ],
+        "description": "KvTv offers trending, top-rated, and upcoming movies and TV shows to stream online.",
+        "logo": "https://www.kvtv.example.com/logo.png"
+      }
+    </script>
   </head>
+
   <body>
     <div id="root"></div>
     <script type="module" src="/src/main.tsx"></script>

@@ -1,5 +1,7 @@
 // src/types.ts
 
+import { ReactNode } from "react";
+
 // --- Core API Structures ---
 
 /**
@@ -20,6 +22,8 @@ export interface PaginatedApiResponse<T> {
  * especially useful for list items where data is concise.
  */
 export interface CommonListItemProperties {
+  vote_count: ReactNode;
+  release_date: ReactNode;
   id: number;
   title?: string; // Optional, as TV shows use 'name'
   name?: string; // Optional, as movies use 'title'
