@@ -10,7 +10,7 @@ import "./App.css";
 import Player from "./components/Player";
 import TvShows from "./pages/TvShows";
 import Details from "./pages/Details";
-import Error from "./pages/Error";
+import Error from "./pages/Error";  
 
 const router = createBrowserRouter([
   {
