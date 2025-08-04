@@ -63,14 +63,24 @@ const Header = ({ extraClasses = "" }) => {
   return (
     <>
       <div
-        className={`flex justify-between items-center border-b dark:text-white w-full left-0 z-10 md:px-10 px-4 py-2 ${extraClasses}`}
+        className={`flex justify-between items-center border-b dark:text-white w-full left-0 z-10 py-4 md:px-10 px-4 py-2  ${extraClasses}`}
       >
-        <Link to={"/"} className="flex gap-1 items-center">
-          <h3 className="font-black text-3xl tracking-wide md:block hidden">
-            <img src={logo} alt="kvtv" className="h-10 w-auto" />
-          </h3>
-          {/* <img src={logo} className="w-10 h-10" alt="kvtv-Movie-Icon" /> */}
-        </Link>
+        <Link to="/" className="flex gap-2 items-center">
+  {/* Desktop Logo */}
+  <img
+    src={logo}
+    alt="KvTv logo"
+    className="h-10 w-auto hidden md:block"
+  />
+
+  {/* Mobile Logo */}
+  <img
+    src={logo}
+    alt="KvTv icon"
+    className="h-8 w-20 md:hidden"
+  />
+</Link>
+
         <div className="flex gap-4 items-center">
           <Search className="md:hidden" />
           <Sheet>
@@ -87,7 +97,7 @@ const Header = ({ extraClasses = "" }) => {
                   className="flex items-center gap-2 text-lg font-semibold"
                 >
                   <img src={logo} alt="blink" className="h-10 w-10" />
-                  <span className="sr-only">Blink</span>
+                  <span className="sr-only">Bli</span>
                 </Link>
                 <Link
                   to="/"
